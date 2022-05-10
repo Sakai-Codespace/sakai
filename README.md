@@ -15,6 +15,7 @@ One Click Dev Setup, you can try on Gitpod. (Gihub Codespaces is in progress)
 ## How to use VS Code with Sakai Gitpod
 
 #### After tomcat is server loaded
+> It will take some time because sakai database will be created at the first start, you can watch the logs in vs code terminal.
 
 
 
