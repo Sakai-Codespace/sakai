@@ -55,7 +55,7 @@ mvn clean install -Dmaven.test.skip=true -T 4C -Dmaven.tomcat.home=/workspaces/t
 
 
 # Finally, start the tomcat
-cd ../tomcat9/bin
+cd ../tomcat9
 
-./startup.sh; tail -f logs/catalina.out
+bin/startup.sh; tail -f logs/catalina.out
 
