@@ -1,0 +1,5 @@
+// Sakai Dev Container
+{
+	"name": "Sakai Dev Container",
+	"onCreateCommand": "sh ./github-codespaces-scripts.sh"
+}

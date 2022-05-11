@@ -38,11 +38,7 @@ rm tomcat9.zip
 chmod +x tomcat9/bin/*.sh
 
 # set up Java and Maven Paths(only required in Gihub Codespaces)
-export JAVA_HOME=/opt/java/11.0.14
-export PATH=$PATH:$JAVA_HOME/bin
-
-export MAVEN_HOME=/opt/maven/3.6.3
-export PATH=$PATH:$MAVEN_HOME/bin
+source ./export-paths.sh
 
 # restart terminal in case it is not updated
 source ~/.profile
