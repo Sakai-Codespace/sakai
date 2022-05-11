@@ -13,7 +13,7 @@ sudo mysql -uroot -Bse  "create database sakaidb  default character set utf8; cr
 "
 
 # create sakai.properties in workspace directory
-cd ..
+cd ../..
 
 wget https://github.com/kunaljaykam/kj-sakai/raw/main/sakai-github-codespaces-template/sakai.properties.zip
 
