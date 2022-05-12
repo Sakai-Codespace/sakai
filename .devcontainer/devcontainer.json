@@ -1,5 +1,6 @@
 // Sakai Dev Container
 {
 	"name": "Sakai Dev Container",
-	"postCreateCommand": "/bin/bash ./.devcontainer/export-paths.sh && /bin/bash exec && /bin/bash ./.devcontainer/github-codespaces-scripts.sh"
+	"onCreateCommand": "/bin/bash . ./.devcontainer/export-paths.sh",
+	"postCreateCommand": "/bin/bash ./.devcontainer/github-codespaces-scripts.sh > ~/post-create.log"
 }
