@@ -12,8 +12,8 @@ sudo mysql -uroot -Bse  "create database sakaidb  default character set utf8; cr
   flush privileges;
 "
 
-# create sakai.properties in workspace directory
-cd ..
+# create sakai.properties in home directory
+cd
 
 wget https://github.com/kunaljaykam/kj-sakai/raw/main/sakai-gitpod-template/sakai.properties.zip
 
@@ -37,15 +37,13 @@ rm tomcat9.zip
 # make the tomcat bin directory executable
 chmod +x tomcat9/bin/*.sh
 
+# build sakai(skip tests) and deploy
+cd /workspace/sakai
 
-
-# Now build Sakai(skip tests)
-cd sakai
-
-mvn clean install -Dmaven.test.skip=true -T 4C -Dmaven.tomcat.home=/workspace/tomcat9 -Dsakai.home=/workspace/ sakai:deploy
+mvn clean install -Dmaven.test.skip=true -T 4C -Dmaven.tomcat.home=/home/gitpod/tomcat9 -Dsakai.home=/home/gitpod/ sakai:deploy
 
 
 # Finally, start the tomcat
-cd ../tomcat9
+cd ~/tomcat9
 
 bin/startup.sh; tail -f logs/catalina.out
