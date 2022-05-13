@@ -40,4 +40,4 @@ chmod +x tomcat9/bin/*.sh
 # build sakai(skip tests) and deploy
 cd /workspace/sakai
 
-mvn clean install -Dmaven.test.skip=true -T 4C -Dmaven.tomcat.home=/home/tomcat9 -Dsakai.home=/home/ sakai:deploy
+mvn clean install -Dmaven.test.skip=true -T 4C -Dmaven.tomcat.home=/home/gitpod/tomcat9 -Dsakai.home=/home/gitpod/ sakai:deploy
