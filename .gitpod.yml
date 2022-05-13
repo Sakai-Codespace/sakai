@@ -1,6 +1,6 @@
 # Sakai Gitpod configuration file
 tasks:
   - name: "Sakai Dev Environment"
-  - before: "sh ./gitpod-scripts/build-sakai.sh"
-  - init: "sh ./gitpod-scripts/setup-env.sh"
+  - before: "sh ./gitpod-scripts/setup-env.sh"
+  - init: "sh ./gitpod-scripts/build-sakai.sh"
   - command: "sh ./gitpod-scripts/start-tomcat.sh"
