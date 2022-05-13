@@ -1,6 +1,23 @@
+---
 # Sakai Gitpod configuration file
 tasks:
   - name: "Sakai Dev Environment"
-  - before: "sh ./gitpod-scripts/setup-env.sh"
-  - init: "sh ./gitpod-scripts/build-sakai.sh"
+  - before: "sh ./gitpod-scripts/build-sakai.sh"
   - command: "sh ./gitpod-scripts/start-tomcat.sh"
+
+
+
+
+
+
+
+
+# vscode extensions
+vscode:
+    extensions:
+      - cweijan.vscode-mysql-client2
+
+
+ports:
+  - port: 8080
+    onOpen: open-preview
