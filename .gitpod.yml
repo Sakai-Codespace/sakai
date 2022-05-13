@@ -1,13 +1,11 @@
----
 # Sakai Gitpod configuration file
 tasks:
   - name: "Sakai Dev Environment"
-  - before: "sh ./gitpod-scripts/build-sakai.sh"
+  - before: "sh ./gitpod-scripts/build-sakai.sh && gp sync done"
+
+  - name: "Start Tomcat Server"
+  - init: "gp sync await"
   - command: "sh ./gitpod-scripts/start-tomcat.sh"
-
-
-
-
 
 
 
