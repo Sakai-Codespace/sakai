@@ -39,11 +39,6 @@ rm tomcat9.zip
 # make the tomcat bin directory executable
 chmod +x tomcat9/bin/*.sh
 
-# set up Java and Maven Paths(only required in Gihub Codespaces)
-source ./export-paths.sh
-
-# restart terminal in case it is not updated
-source ~/.profile
 
 
 # Now build Sakai(skip tests)

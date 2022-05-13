@@ -3,3 +3,5 @@ export PATH=$PATH:$JAVA_HOME/bin
 
 export MAVEN_HOME=/opt/maven/3.6.3
 export PATH=$PATH:$MAVEN_HOME/bin
+
+exec
