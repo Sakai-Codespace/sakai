@@ -1,11 +1,7 @@
 # Sakai Gitpod configuration file
 tasks:
   - name: "Sakai Dev Environment"
-  - before: "sh ./gitpod-scripts/build-sakai.sh && gp sync done"
-
-  - name: "Start Tomcat Server"
-  - init: "gp sync await"
-  - command: "sh ./gitpod-scripts/start-tomcat.sh"
+  - command: "sh ./gitpod-scripts.sh"
 
 
 
@@ -15,7 +11,7 @@ vscode:
     extensions:
       - cweijan.vscode-mysql-client2
 
-
+# Open port
 ports:
   - port: 8080
     onOpen: open-preview
