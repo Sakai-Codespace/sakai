@@ -6,10 +6,14 @@ tasks:
 
 
 
-# vscode extensions
+# VS Code Extesnsions to make your life easier
 vscode:
     extensions:
       - cweijan.vscode-mysql-client2
+
+      - sodatea.velocity
+
+      - eamodio.gitlens
 
 # Open port
 ports:
