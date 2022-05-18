@@ -2227,8 +2227,8 @@ public class AssignmentAction extends PagedResourceActionII {
         try {
             // Get site ID
             String siteId = toolManager.getCurrentPlacement().getContext();
-            Optional<Site> site = Optional.of(siteService.getSite(siteId));
-            Site currentSite = site.get();
+            // Get site by ID
+            Site currentSite = siteService.getSite(siteId);
             // Assignments Tool Configuration
             ToolConfiguration toolConfig = currentSite.getToolForCommonId(TOOL_ID);
                     
@@ -2705,6 +2705,24 @@ public class AssignmentAction extends PagedResourceActionII {
             addActivity(context, submission.getAssignment());
             context.put("itemHelpers", itemHelpers);
             context.put("taggable", Boolean.valueOf(true));
+        }
+        
+        try {
+            // Get site ID
+            String siteId = toolManager.getCurrentPlacement().getContext();
+            // Get site by ID
+            Site currentSite = siteService.getSite(siteId);
+            // Assignments Tool Configuration
+            ToolConfiguration toolConfig = currentSite.getToolForCommonId(TOOL_ID);
+                    
+            // Get visibility value of assignments tool
+            String isAssignmentsVisible = toolConfig.getConfig().getProperty(ToolManager.PORTAL_VISIBLE);
+            
+            // Checks if the assignments tool is visible from the LHS Menu.
+            context.put("isAssignmentsToolVisible", StringUtils.equalsIgnoreCase(isAssignmentsVisible, Boolean.TRUE.toString()));
+            
+        } catch(IdUnusedException e) {
+            log.error(e.getMessage(), e);
         }
 
         // put supplement item into context
