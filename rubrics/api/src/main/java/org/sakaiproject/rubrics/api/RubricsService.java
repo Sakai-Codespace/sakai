@@ -79,7 +79,7 @@ public interface RubricsService {
 
     RatingTransferBean saveRating(RatingTransferBean bean, String siteId);
 
-    void deleteRating(Long ratingId, Long criterionId, String siteId);
+    CriterionTransferBean deleteRating(Long ratingId, Long criterionId, String siteId);
 
     Optional<RubricTransferBean> getRubric(Long rubricId);
 
@@ -90,6 +90,8 @@ public interface RubricsService {
     Optional<EvaluationTransferBean> getEvaluation(Long evaluationId, String siteId);
 
     Optional<EvaluationTransferBean> getEvaluationForToolAndItemAndEvaluatedItemId(String toolId, String itemId, String evaluatedItemId, String siteId);
+
+    List<EvaluationTransferBean> getEvaluationsForToolAndItem(String toolId, String itemId, String siteId);
 
     EvaluationTransferBean saveEvaluation(EvaluationTransferBean evaluationBean, String siteId);
 

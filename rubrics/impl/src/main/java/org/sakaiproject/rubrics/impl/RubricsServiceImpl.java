@@ -52,7 +52,6 @@ import org.jsoup.Jsoup;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sakaiproject.authz.api.AuthzGroupService;
-import org.sakaiproject.authz.api.AuthzGroupReferenceBuilder;
 import org.sakaiproject.authz.api.FunctionManager;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -90,6 +89,7 @@ import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.time.api.UserTimeService;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
+import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.util.api.FormattedText;
@@ -462,19 +462,19 @@ public class RubricsServiceImpl implements RubricsService, EntityProducer, Entit
         return RatingTransferBean.of(ratingRepository.save(bean.toRating()));
     }
 
-    public void deleteRating(Long ratingId, Long criterionId, String siteId) {
+    public CriterionTransferBean deleteRating(Long ratingId, Long criterionId, String siteId) {
 
         String currentUserId = sessionManager.getCurrentSessionUserId();
 
-        if (StringUtils.isBlank(currentUserId) || !isEditor(siteId)) {
+        if (!isEditor(siteId)) {
             throw new SecurityException("You must be a rubrics editor to create/edit ratings");
         }
 
-        criterionRepository.findById(criterionId).ifPresent(criterion -> {
+        return criterionRepository.findById(criterionId).map(criterion -> {
 
-            criterion.getRatings().removeIf(r -> r.getId() == ratingId);
-            criterionRepository.save(criterion);
-        });
+            criterion.getRatings().removeIf(r -> r.getId().equals(ratingId));
+            return CriterionTransferBean.of(criterionRepository.save(criterion));
+        }).orElseThrow(() -> new IllegalArgumentException());
     }
 
     @Transactional(readOnly = true)
@@ -542,6 +542,28 @@ public class RubricsServiceImpl implements RubricsService, EntityProducer, Entit
                 }
             });
     }
+
+    @Transactional(readOnly = true)
+    public List<EvaluationTransferBean> getEvaluationsForToolAndItem(String toolId, String itemId, String siteId) {
+
+        ToolItemRubricAssociation association = associationRepository.findByToolIdAndItemId(toolId, itemId)
+            .orElseThrow(() -> new IllegalArgumentException("No association for toolId " + toolId + " and itemId " + itemId));
+
+        List<Evaluation> evaluations = evaluationRepository.findByAssociationId(association.getId());
+        List<String> userIds = evaluations.stream().map(e -> e.getEvaluatedItemOwnerId()).collect(Collectors.toList());
+        Map<String, User> userMap = userDirectoryService.getUsers(userIds).stream().collect(Collectors.toMap(u -> u.getId(), u -> u));
+        return evaluationRepository.findByAssociationId(association.getId())
+            .stream()
+            .filter(eval -> canViewEvaluation(eval, siteId))
+            .map(e -> {
+
+                EvaluationTransferBean bean = EvaluationTransferBean.of(e);
+                bean.sortName = userMap.get(bean.evaluatedItemOwnerId).getSortName();
+                return bean;
+            })
+            .collect(Collectors.toList());
+    }
+
 
     public EvaluationTransferBean saveEvaluation(EvaluationTransferBean evaluationBean, String siteId) {
 
@@ -962,8 +984,10 @@ public class RubricsServiceImpl implements RubricsService, EntityProducer, Entit
                 titlePoints = resourceLoader.getFormattedMessage("export_rubrics_weight", cri.getTitle(), this.getCriterionPoints(cri, optEvaluation), cri.getWeight());
             }
             Paragraph criterionParagraph = new Paragraph(titlePoints, BOLD_FONT);
-            criterionParagraph.add(Chunk.NEWLINE);
-            criterionParagraph.add(new Paragraph(formattedText.stripHtmlFromText(cri.getDescription(), true), NORMAL_FONT));
+            if (StringUtils.isNotBlank(cri.getDescription())) {
+                criterionParagraph.add(Chunk.NEWLINE);
+                criterionParagraph.add(new Paragraph(formattedText.stripHtmlFromText(cri.getDescription(), true), NORMAL_FONT));
+            }
             criterionCell.addElement(criterionParagraph);
 
             criterionTable.addCell(criterionCell);
@@ -1181,8 +1205,7 @@ public class RubricsServiceImpl implements RubricsService, EntityProducer, Entit
                 return true;
             }
             if (eval.getEvaluatedItemOwnerType() == EvaluatedItemOwnerType.GROUP) {
-                String groupRef = AuthzGroupReferenceBuilder.builder().site(siteId).group(eval.getEvaluatedItemOwnerId()).build();
-                return securityService.unlock(RubricsConstants.RBCS_PERMISSIONS_EVALUEE, groupRef);
+                return authzGroupService.getUserRole(currentUserId, eval.getEvaluatedItemOwnerId()) != null;
             }
         }
 

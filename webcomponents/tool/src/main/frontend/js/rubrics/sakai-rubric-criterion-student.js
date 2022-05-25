@@ -1,7 +1,7 @@
-import {RubricsElement} from "./rubrics-element.js";
-import {html} from "/webcomponents/assets/lit-element/lit-element.js";
-import {repeat} from "/webcomponents/assets/lit-html/directives/repeat.js";
-import {unsafeHTML} from "/webcomponents/assets/lit-html/directives/unsafe-html.js";
+import { RubricsElement } from "./rubrics-element.js";
+import { html } from "/webcomponents/assets/lit-element/lit-element.js";
+import { repeat } from "/webcomponents/assets/lit-html/directives/repeat.js";
+import { unsafeHTML } from "/webcomponents/assets/lit-html/directives/unsafe-html.js";
 import "./sakai-rubric-student-comment.js";
 
 export class SakaiRubricCriterionStudent extends RubricsElement {
@@ -15,7 +15,7 @@ export class SakaiRubricCriterionStudent extends RubricsElement {
       evaluationDetails: { attribute: "evaluation-details", type: Array },
       preview: Boolean,
       entityId: { attribute: "entity-id", type: String },
-      weighted: Boolean
+      weighted: Boolean,
     };
   }
 
@@ -48,6 +48,11 @@ export class SakaiRubricCriterionStudent extends RubricsElement {
 
   get evaluationDetails() { return this._evaluationDetails; }
 
+  handleClose() {
+
+    this.querySelectorAll("sakai-rubric-student-comment").forEach(el => el.handleClose());
+  }
+
   render() {
 
     return html`
@@ -62,20 +67,21 @@ export class SakaiRubricCriterionStudent extends RubricsElement {
             </div>
           ` : html`
             <div id="criterion_row_${c.id}" class="criterion-row">
+              <div class="criterion-detail">
+                <h4 class="criterion-title">${c.title}</h4>
                 <p>${unsafeHTML(c.description)}</p>
-                ${this.weighted ? html`
-                      <div class="criterion-weight">
-                          <span>
-                            <sr-lang key="weight">Weight</sr-lang>
-                          </span>
-                          <span>${c.weight.toLocaleString(this.locale)}</span>
-                          <span>
-                            <sr-lang key="percent_sign">%</sr-lang>
-                          </span>
-                      </div>`
-                    : ""
-                  }
               </div>
+              ${this.weighted ? html`
+                <div class="criterion-weight">
+                  <span>
+                    <sr-lang key="weight">Weight</sr-lang>
+                  </span>
+                  <span>${c.weight.toLocaleString(this.locale)}</span>
+                  <span>
+                    <sr-lang key="percent_sign">%</sr-lang>
+                  </span>
+                </div>
+              ` : "" }
               <div class="criterion-ratings">
                 <div class="cr-table">
                   <div class="cr-table-row">
@@ -121,10 +127,6 @@ export class SakaiRubricCriterionStudent extends RubricsElement {
       </div>
       ` : html``}
     `;
-  }
-
-  isCriterionGroup(criterion) {
-    return criterion.ratings.length === 0;
   }
 
   handleEvaluationDetails() {
@@ -205,7 +207,6 @@ export class SakaiRubricCriterionStudent extends RubricsElement {
       return 'strike';
     }
     return '';
-
   }
 }
 

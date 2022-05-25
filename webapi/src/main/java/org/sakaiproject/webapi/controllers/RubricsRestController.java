@@ -276,6 +276,13 @@ public class RubricsRestController extends AbstractSakaiApiController {
         }
     }
 
+    @GetMapping(value = "/sites/{siteId}/rubric-evaluations/tools/{toolId}/items/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<List<EvaluationTransferBean>> getEvaluationsForItem(@PathVariable String siteId, @PathVariable String toolId, @PathVariable String itemId) throws Exception {
+
+        checkSakaiSession();
+        return ResponseEntity.ok(rubricsService.getEvaluationsForToolAndItem(toolId, itemId, siteId));
+    }
+
     @PutMapping(value = "/sites/{siteId}/rubrics/{rubricId}/criteria/sort")
     ResponseEntity sortCriteria(@PathVariable String siteId, @PathVariable Long rubricId, @RequestBody List<Long> sortedIds) {
 
@@ -345,13 +352,12 @@ public class RubricsRestController extends AbstractSakaiApiController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping(value = "/sites/{siteId}/rubrics/{rubricId}/criteria/{criterionId}/ratings/{ratingId}")
-    ResponseEntity deleteRating(@PathVariable String siteId, @PathVariable Long criterionId, @PathVariable Long ratingId) throws Exception {
+    @DeleteMapping(value = "/sites/{siteId}/rubrics/{rubricId}/criteria/{criterionId}/ratings/{ratingId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<EntityModel<CriterionTransferBean>> deleteRating(@PathVariable String siteId, @PathVariable Long criterionId, @PathVariable Long ratingId) throws Exception {
 
         checkSakaiSession();
 
-        rubricsService.deleteRating(ratingId, criterionId, siteId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(entityModelForCriterionBean(rubricsService.deleteRating(ratingId, criterionId, siteId)));
     }
 
     @ResponseBody
@@ -362,7 +368,7 @@ public class RubricsRestController extends AbstractSakaiApiController {
 
         checkSakaiSession();
 
-        return ResponseEntity.ok().body(rubricsService.createPdf(siteId, rubricId, toolId, itemId, evaluatedItemId));
+        return ResponseEntity.ok(rubricsService.createPdf(siteId, rubricId, toolId, itemId, evaluatedItemId));
     }
 
     private EntityModel<RubricTransferBean> entityModelForRubricBean(RubricTransferBean rubricBean) {
