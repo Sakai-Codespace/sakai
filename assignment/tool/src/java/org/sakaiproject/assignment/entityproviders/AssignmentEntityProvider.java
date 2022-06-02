@@ -624,6 +624,48 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
         return HttpServletResponse.SC_OK;
     }
 
+    @EntityCustomAction(action = "getTimeSheet", viewKey = EntityView.VIEW_LIST)
+    public Map<String, String> getTimeSheet(EntityView view , Map<String, Object> params) {
+
+        String userId = sessionManager.getCurrentSessionUserId();
+        Map<String, String> assignData = new HashMap<>(); 
+
+        if (StringUtils.isBlank(userId)) {
+            log.warn("You need to be logged in to add time sheet register");
+            throw new EntityException("You need to be logged in to get timesheet", "", HttpServletResponse.SC_UNAUTHORIZED);
+        }
+
+        User u;
+        try {
+            u = userDirectoryService.getUser(userId);
+        } catch (UserNotDefinedException e2) {
+            log.warn("You need to be logged in to add time sheet register");
+            throw new EntityException("You need to be logged in to get timesheet", "", HttpServletResponse.SC_UNAUTHORIZED);
+        }
+
+        String assignmentId = view.getPathSegment(2);
+
+        if (StringUtils.isBlank(assignmentId)) {
+            log.warn("You need to supply the assignmentId and ref");
+            throw new EntityException("Cannot execute custom action (getTimeSheet): Illegal arguments: Must include context and assignmentId in the path (/assignment.json): e.g. /assignment/getTimeSheet/{assignmentId} (rethrown)", assignmentId, HttpServletResponse.SC_BAD_REQUEST);
+        }
+
+        AssignmentSubmission as;
+        try {
+            as = assignmentService.getSubmission(assignmentId, u);
+        } catch (PermissionException e1) {
+            log.warn("You can't modify this sumbitter");
+            throw new EntityException("You don't have permissions read submission " + assignmentId, "", HttpServletResponse.SC_FORBIDDEN);
+        }
+        if(as == null) {
+            throw new EntityException("There are not worklog records for this assignment ", assignmentId, HttpServletResponse.SC_BAD_REQUEST); 
+        }
+        AssignmentSubmissionSubmitter submitter = as.getSubmitters().stream().findAny().orElseThrow(() -> new EntityException("There are not worklog records for this assignment ", assignmentId, HttpServletResponse.SC_BAD_REQUEST));
+        assignData.put("timeSpent", submitter.getSubmittee() ? submitter.getTimeSpent() : assignmentService.getTotalTimeSheet(submitter));
+
+        return assignData;
+    }
+
     @EntityCustomAction(action = "gradable", viewKey = EntityView.VIEW_LIST)
     public ActionReturn getGradableForSite(EntityView view , Map<String, Object> params) {
 
@@ -679,8 +721,8 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
 
             for (SimpleSubmission submission : submissions) {
                 if ( ! submission.userSubmission ) continue;
-				String ltiSubmissionLaunch = null;
-                for(SimpleSubmitter submitter: submission.submitters) {
+                String ltiSubmissionLaunch = null;
+                for ( SimpleSubmitter submitter: submission.submitters ) {
                     if ( submitter.id != null ) {
                         ltiSubmissionLaunch = "/access/basiclti/site/" + siteId + "/content:" + contentKey + "?for_user=" + submitter.id;
 
@@ -845,6 +887,19 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
 
         Map<String, Object> options = new HashMap<>();
         options.put(GRADE_SUBMISSION_GRADE, grade);
+
+        // check for grade overrides
+        if (assignment.getIsGroup() && assignment.getTypeOfGrade() == Assignment.GradeType.SCORE_GRADE_TYPE) {
+            submission.getSubmitters().forEach(s -> {
+
+                String ug = StringUtils.trimToNull((String) params.get(GRADE_SUBMISSION_GRADE + "_" + s.getSubmitter()));
+                if (ug != null) {
+                    ug = assignmentToolUtils.scalePointGrade(ug, assignment.getScaleFactor(), alerts);
+                    options.put(GRADE_SUBMISSION_GRADE + "_" + s.getSubmitter(), ug);
+                }
+            });
+        }
+
         options.put(GRADE_SUBMISSION_FEEDBACK_TEXT, feedbackText);
         options.put(GRADE_SUBMISSION_FEEDBACK_COMMENT, feedbackComment);
         options.put(GRADE_SUBMISSION_PRIVATE_NOTES, privateNotes);
@@ -1476,12 +1531,14 @@ public class AssignmentEntityProvider extends AbstractEntityProvider implements 
         private String displayName;
         private String sortName;
         private String displayId;
+        private String grade;
 
         public SimpleSubmitter(AssignmentSubmissionSubmitter ass, boolean anonymousGrading) throws UserNotDefinedException {
 
             super();
 
             this.id = ass.getSubmitter();
+            this.grade = assignmentService.getGradeForSubmitter(ass.getSubmission(), id);
             if (!anonymousGrading) {
                 User user = userDirectoryService.getUser(this.id);
                 this.displayName = user.getDisplayName();
