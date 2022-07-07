@@ -1227,8 +1227,10 @@ public void processChangeSelectView(ValueChangeEvent eve)
 			  selectedComposeToList.add(membershipItem.getId());
 		  }
 	  }
+	  String recipientsAsTextBcc = currentMessage.getRecipientsAsTextBcc() == null ? "" : currentMessage.getRecipientsAsTextBcc();
+
 	  String[] splitRecipents = currentMessage.getRecipientsAsText().split(";");
-	  String[] splitRecipentsBcc = currentMessage.getRecipientsAsTextBcc().split(";");
+	  String[] splitRecipentsBcc = recipientsAsTextBcc.split(";");
 	  for (MembershipItem membershipItem : totalComposeToList) {
 		  for (String recipient: splitRecipents) {
 			  if (membershipItem.getName().equals(recipient) && !selectedComposeToList.stream().anyMatch(s -> s.equals(recipient))) {
@@ -1770,7 +1772,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
   public String processPvtMsgSend() {
           
     log.debug("processPvtMsgSend()");
-    
+    storeDateISO();
     if(StringUtils.isEmpty(getComposeSubject()))
     {
       setErrorMessage(getResourceBundleString(MISSING_SUBJECT));
@@ -2303,8 +2305,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
       
       if (searchPvtMsgs != null)
       {
-    	  searchPvtMsgs.clear();
-    	  return DISPLAY_MESSAGES_PG;
+          return processClearSearch();
       }
     }
     return null;
@@ -2340,8 +2341,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
       
       if (searchPvtMsgs != null)
       {
-    	  searchPvtMsgs.clear();
-    	  return DISPLAY_MESSAGES_PG;
+          return processClearSearch();
       }
     }
 
@@ -2403,7 +2403,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
   }
   
   public String processPvtMsgPreviewReplySend(){
-	  
+	  storeDateISO();
 	  return processPvtMsgReplySentAction(getDetailMsg().getMsg());
   }
   
@@ -2471,7 +2471,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
     	setErrorMessage(getResourceBundleString(MULTIPLE_WINDOWS , new Object[] {ServerConfigurationService.getString("ui.service","Sakai")}));
     	return null;
     } else {
-    
+    	storeDateISO();
     	//PrivateMessage currentMessage = getDetailMsg().getMsg() ;
     	//by default add user who sent original message    
     	for (MembershipItem membershipItem : totalComposeToList) {
@@ -2640,6 +2640,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
  }
  
  public String processPvtMsgPreviewForwardSend(){	  
+	  storeDateISO();
 	  processPvtMsgForwardSendHelper(getDetailMsg().getMsg());
 	  return DISPLAY_MESSAGES_PG;
  }
@@ -2677,7 +2678,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
  }
  
  private PrivateMessage getPvtMsgForward(PrivateMessage currentMessage, boolean isDraft){
-
+	 storeDateISO();
 	 if(!isDraft){
 		 if(getSelectedComposeToList().size()<1 && getSelectedComposeBccList().size() < 1)
 		 {
@@ -2914,7 +2915,7 @@ public void processChangeSelectView(ValueChangeEvent eve)
 	  PrivateMessage currentMessage = getDetailMsg().getMsg() ;
 	  setComposeLists(currentMessage);
 	  String msgauther=currentMessage.getAuthor();//string   "Test"      
-
+	  storeDateISO();
 	  //Select Forward Recipients
 	  
 	  if(StringUtils.isEmpty(getReplyToAllSubject())) {
@@ -3184,7 +3185,6 @@ public void processChangeSelectView(ValueChangeEvent eve)
 		 return null;
 	 }else{
 		 pvtMsg.setDraft(Boolean.TRUE);
-		 setMsgNavMode(PVTMSG_MODE_DRAFT);
 		 String returnVal = processPvtMsgReplySentAction(pvtMsg);
 		 if(returnVal == null){
 			 return null;
@@ -4849,4 +4849,11 @@ public void processChangeSelectView(ValueChangeEvent eve)
 			  this.openDate = null;
 		  }
 	  }
+
+	private void storeDateISO() {
+	    String openDateISO8601 = (String)FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("openDateISO8601");
+	    if(booleanSchedulerSend && StringUtils.isNotBlank(openDateISO8601)) {
+		    this.schedulerSendDateString = openDateISO8601;
+		}
+	}
 }

@@ -967,6 +967,8 @@ public class AssignmentServiceImpl implements AssignmentService, EntityTransferr
                 assignment.setPosition(existingAssignment.getPosition());
                 assignment.setIsGroup(existingAssignment.getIsGroup());
                 assignment.setAllowPeerAssessment(existingAssignment.getAllowPeerAssessment());
+                assignment.setModifier(userDirectoryService.getCurrentUser().getId());
+                assignment.setDateModified(Instant.now());
                 if (!existingAssignment.getGroups().isEmpty()) {
                 	assignment.setGroups(new HashSet<>(existingAssignment.getGroups()));
                 	assignment.setTypeOfAccess(GROUP);
@@ -1101,9 +1103,9 @@ public class AssignmentServiceImpl implements AssignmentService, EntityTransferr
 
                 //copy rubric
                 try {
-                    Optional<ToolItemRubricAssociation> rubricAssociation = rubricsService.getRubricAssociation(RubricsConstants.RBCS_TOOL_ASSIGNMENT, assignmentId);
+                    Optional<ToolItemRubricAssociation> rubricAssociation = rubricsService.getRubricAssociation(AssignmentConstants.TOOL_ID, assignmentId);
                     if (rubricAssociation.isPresent()) {
-                        rubricsService.saveRubricAssociation(RubricsConstants.RBCS_TOOL_ASSIGNMENT, assignment.getId(), rubricAssociation.get().getFormattedAssociation());
+                        rubricsService.saveRubricAssociation(AssignmentConstants.TOOL_ID, assignment.getId(), rubricAssociation.get().getFormattedAssociation());
                     }
                 } catch(Exception e){
                     log.error("Error while trying to duplicate Rubrics: {} ", e.getMessage());
@@ -2887,6 +2889,21 @@ public class AssignmentServiceImpl implements AssignmentService, EntityTransferr
 
         Integer scale = assignment.getScaleFactor() != null ? assignment.getScaleFactor() : getScaleFactor();
         return getGradeDisplay(grade, assignment.getTypeOfGrade(), scale);
+    }
+
+    public boolean isGradeOverridden(AssignmentSubmission submission, String submitter) {
+
+        Assignment assignment = submission.getAssignment();
+
+        if (!assignment.getIsGroup()) {
+            return false;
+        }
+
+        Optional<AssignmentSubmissionSubmitter> submissionSubmitter
+            = submission.getSubmitters().stream()
+                .filter(s -> s.getSubmitter().equals(submitter)).findAny();
+
+        return submissionSubmitter.isPresent() && StringUtils.isNotBlank(submissionSubmitter.get().getGrade());
     }
 
     /**
@@ -5012,13 +5029,6 @@ public class AssignmentServiceImpl implements AssignmentService, EntityTransferr
 
         dupes.sort(Comparator.comparing(r -> r.user.getDisplayName()));
         return dupes;
-    }
-
-    @Override
-    public boolean existsTimeSheetEntries(AssignmentSubmissionSubmitter asnSubmissionSubmitter) {
-        AssignmentSubmission submission = asnSubmissionSubmitter.getSubmission();
-        String reference = AssignmentReferenceReckoner.reckoner().submission(submission).reckon().getReference();
-        return timeSheetService.existsAny(reference);
     }
 
     @Override

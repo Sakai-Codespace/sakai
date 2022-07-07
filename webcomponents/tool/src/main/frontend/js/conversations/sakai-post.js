@@ -147,9 +147,9 @@ export class SakaiPost extends reactionsMixin(SakaiElement) {
       if (r.ok) {
         this.post.hidden = !this.post.hidden;
         this.dispatchEvent(new CustomEvent("post-updated", { detail: { post: this.post }, bubbles: true }));
+      } else {
+        throw new Error(`Network error while hiding/showing post at ${url}: ${r.status}`);
       }
-
-      throw new Error("Network error while hiding/showing post");
     })
     .catch(error => console.error(error));
   }
@@ -506,7 +506,7 @@ export class SakaiPost extends reactionsMixin(SakaiElement) {
 
     return html`
 
-      <div id="discussion-post-block-${this.post.id}" class="discussion-post-block ${this.post.hidden ? "soft-deleted" : ""}">
+      <div id="discussion-post-block-${this.post.id}" class="discussion-post-block">
 
         <div class="discussion-post-left-column">
           <div class="photo">
@@ -528,8 +528,8 @@ export class SakaiPost extends reactionsMixin(SakaiElement) {
             <div id="post-${this.post.id}" class="discussion-post-content" data-post-id="${this.post.id}">
               ${this._renderAuthorDetails()}
               <div>
-              ${this.post.late ? html`
-              <div class="discussion-post-late">late</div>
+              ${this.post.late && (this.isInstructor || this.post.isMine) ? html`
+              <div class="discussion-post-late">${this.i18n.late}</div>
               ` : ""}
               ${!this.post.viewed ? html`
               <div class="discussion-post-new">${this.i18n.new}</div>
@@ -687,7 +687,6 @@ export class SakaiPost extends reactionsMixin(SakaiElement) {
       <div id="post-${this.post.id}"
           data-post-id="${this.post.id}"
           class="post ${this.post.isInstructor ? "instructor" : ""}
-          ${this.post.hidden ? "soft-deleted" : ""}
           ${(!this.post.comments || !this.post.comments.length) && !this.post.canComment ? "post-without-comment-block" : ""}">
 
         <div class="post-topbar">
@@ -698,7 +697,7 @@ export class SakaiPost extends reactionsMixin(SakaiElement) {
             </sakai-user-photo>
           </div>
           ${this._renderAuthorDetails()}
-          ${this.post.late ? html`
+          ${this.post.late && (this.isInstructor || this.post.isMine) ? html`
           <div class="discussion-post-late">late</div>
           ` : ""}
           ${this.post.isInstructor ? html`

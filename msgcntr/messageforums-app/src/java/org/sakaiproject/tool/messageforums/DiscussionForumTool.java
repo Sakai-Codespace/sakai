@@ -231,7 +231,6 @@ public class DiscussionForumTool {
   @ManagedProperty(value="#{Components[\"org.sakaiproject.api.app.messageforums.AreaManager\"]}")
   private AreaManager areaManager;
   private int numPendingMessages = 0;
-  private boolean refreshPendingMsgs = true;
   
   private static final String TOPIC_ID = "topicId";
   private static final String FORUM_ID = "forumId";
@@ -3456,7 +3455,6 @@ public class DiscussionForumTool {
     attachments.clear();
     prepareRemoveAttach.clear();
     assignments.clear();
-    refreshPendingMsgs = true;
   }
 
   /**
@@ -4871,7 +4869,7 @@ public class DiscussionForumTool {
         displayPendingMsgQueue = false;
       }
 
-      if (refreshPendingMsgs && displayPendingMsgQueue) {
+      if (displayPendingMsgQueue) {
         refreshPendingMessages(membershipList, moderatedTopics);
       }
     }
@@ -4951,8 +4949,6 @@ public class DiscussionForumTool {
 		  	}
 		  }
 	  }
-	  
-	  refreshPendingMsgs = false;
   }
   
   /**
@@ -4974,7 +4970,7 @@ public class DiscussionForumTool {
 	  approveOrDenySelectedMsgs(true);
 	  
 	  if (numPendingMessages > 0)
-		  return PENDING_MSG_QUEUE;
+		  return null;
 	  
 	  return processActionHome();
   }
@@ -4988,7 +4984,7 @@ public class DiscussionForumTool {
 	  approveOrDenySelectedMsgs(false);
 	  
 	  if (numPendingMessages > 0)
-		  return PENDING_MSG_QUEUE;
+		  return null;
 	  
 	  return processActionHome();
   }
@@ -5044,13 +5040,12 @@ public class DiscussionForumTool {
 		  setErrorMessage(getResourceBundleString(NO_MSG_SEL_FOR_APPROVAL));
 	  else
 	  {
+		  refreshPendingMessages(uiPermissionsManager.getCurrentUserMemberships() , forumManager.getModeratedTopicsInSite());
 		  if (approved)
 			  setSuccessMessage(getResourceBundleString(MSGS_APPROVED));
 		  else
 			  setSuccessMessage(getResourceBundleString(MSGS_DENIED));
 	  }
-	  
-	  refreshPendingMsgs = true;
   }
 
   /**
@@ -5085,7 +5080,7 @@ public class DiscussionForumTool {
 	  
 	  }
 	  
-	  refreshPendingMsgs = true;
+	  refreshPendingMessages(uiPermissionsManager.getCurrentUserMemberships() , forumManager.getModeratedTopicsInSite());
 	  
 	  return MESSAGE_VIEW;
   }
@@ -5120,7 +5115,7 @@ public class DiscussionForumTool {
 		  
 	  }
 	  
-	  refreshPendingMsgs = true;
+	  refreshPendingMessages(uiPermissionsManager.getCurrentUserMemberships() , forumManager.getModeratedTopicsInSite());
 	  
 	  return ADD_COMMENT;
   }
@@ -5167,7 +5162,7 @@ public class DiscussionForumTool {
 	      		updateSynopticMessagesForForumComparingOldMessagesCount(getSiteId(), msg.getTopic().getBaseForum().getId(), msg.getTopic().getId(), beforeChangeHM, SynopticMsgcntrManager.NUM_OF_ATTEMPTS);
 	  }
 	  
-	  refreshPendingMsgs = true;
+	  refreshPendingMessages(uiPermissionsManager.getCurrentUserMemberships() , forumManager.getModeratedTopicsInSite());
 	  
 	  return MESSAGE_VIEW;
   }
@@ -8953,12 +8948,7 @@ public class DiscussionForumTool {
 		}
 		return returnRank;
 	}
-    
-    private boolean alwaysShowFullDesc = false;
-    public boolean isAlwaysShowFullDesc(){
-    	return ServerConfigurationService.getBoolean("mc.alwaysShowFullDesc", false); 
-    }
-    
+
     public String getCurrentToolId(){
     	return toolManager.getCurrentPlacement().getId();
     }
